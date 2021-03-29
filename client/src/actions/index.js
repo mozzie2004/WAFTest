@@ -17,26 +17,5 @@ const foodsError = ()=>{
     }
 }
 
-const foodUpdate = (food)=>{
-    return {
-        type: 'FOODS-UPDATE',
-        payload: food
-    }
-}
 
-const foodAdd = (food)=>{
-    return {
-        type: 'FOODS-ADD',
-        payload: food
-    }
-}
-
-const foodDel = (id)=>{
-    return {
-        type: 'FOODS-DEL',
-        payload: id
-    }
-}
-
-
-export {foodsLoaded, foodsRequested, foodsError, foodUpdate, foodAdd, foodDel}
+export {foodsLoaded, foodsRequested, foodsError,}
