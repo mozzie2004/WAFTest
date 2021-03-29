@@ -1,12 +1,15 @@
 const { Router } = require('express');
-const Foods = require('../models/Food');
 const Food = require('../models/Food');
 const router = Router();
 
 router.get('/', async (req, res) => {
     try {
-        
-        const foods = await Food.findAll()
+
+        const foods = await Food.findAll({
+            order: [
+                ['id', 'ASC']
+            ]
+        })
         res.status(200).json(foods)
 
     } catch (e) {

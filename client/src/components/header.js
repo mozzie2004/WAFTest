@@ -10,7 +10,7 @@ const Header = () => {
         <>
             <AddFood show={modalShow} handleClose={()=>setModalShow(false)}/>
             <Navbar className="d-flex justify-content-between" bg="dark" variant="dark">
-                <Navbar.Brand href="#home">
+                <Navbar.Brand>
                     CRUD
                 </Navbar.Brand>
                 <Button onClick={()=>setModalShow(true)} variant="outline-light">Add hot-dog</Button>{' '}

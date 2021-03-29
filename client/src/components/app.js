@@ -6,7 +6,7 @@ import CardGroupe from '../components/card-groupe';
 import { getAllFoods } from '../services/foodsApiService';
 import { Container, Jumbotron } from 'react-bootstrap';
 
-function App({foods, foodsLoaded, foodsRequested}) {
+function App({foodsLoaded, foodsRequested}) {
 
   useEffect(() => {
 
@@ -28,10 +28,6 @@ function App({foods, foodsLoaded, foodsRequested}) {
   );
 }
 
-const mapStateToProps = ({foods}) => {
-  return {
-    foods
-  }
-}
 
-export default connect(mapStateToProps, {foodsLoaded, foodsRequested, foodsError})(App);
+
+export default connect(null, {foodsLoaded, foodsRequested, foodsError})(App);

@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
-import { addFood } from '../services/foodsApiService';
+import { addFood, getAllFoods } from '../services/foodsApiService';
 import { connect } from 'react-redux';
-import { foodsError, foodAdd } from '../actions';
-import { Modal, Button, Form, ButtonGroup } from 'react-bootstrap';
+import { foodsError, foodsRequested, foodsLoaded } from '../actions';
+import { Modal, Button, Form, ButtonGroup, Spinner } from 'react-bootstrap';
 
-const AddFood = ({show, handleClose, foodsError, foods, foodAdd}) => {
+const AddFood = ({show, handleClose, foodsError, foods, foodsLoaded, foodsRequested}) => {
 
-    const [validated, setValidated] = useState(false)
+    const [validated, setValidated] = useState(false);
+    const [buttonDisabled, setButtonDisabled] = useState(false);
 
     const [data, setData] = useState({
         title: '',
         img: '',
         price: '',
+        description: ''
     });
 
-    
     const {title, img, price, description} = data;
 
     const onChange = (e) => {
@@ -27,17 +28,33 @@ const AddFood = ({show, handleClose, foodsError, foods, foodAdd}) => {
 
     const onSubmit = (e) => {
         e.preventDefault();
-        setValidated(false)
+        setValidated(false);
+        setButtonDisabled(true);
 
         if (foods.find(item=>item.title.trim().toLowerCase() === data.title.trim().toLowerCase())) {
             setValidated(true);
+            setButtonDisabled(false);
             return
         }
 
         addFood(data)
         .then(res=>{
             handleClose();
-            foodAdd(res);            
+            foodsRequested();
+            setButtonDisabled(false);
+            setData({
+                title: '',
+                img: '',
+                price: '',
+                description: ''
+            })
+
+            getAllFoods()
+            .then(res=>{
+                foodsLoaded(res)
+            })
+            .catch(e=>foodsError());    
+
         })
         .catch(e=>foodsError());
 
@@ -59,7 +76,9 @@ const AddFood = ({show, handleClose, foodsError, foods, foodAdd}) => {
                     <Form.Control className="mb-2" placeholder="Description" onChange={onChange} name="description" as="textarea" value={description} />
                     <ButtonGroup aria-label="Basic example">
                         <Button onClick={handleClose} type="button" className="mt-1" variant="secondary">No thanks!</Button>
-                        <Button type="submit" className="mt-1" variant="dark">Add</Button>
+                        <Button disabled={buttonDisabled} type="submit" className="mt-1" variant="dark">
+                            Add  {buttonDisabled ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true"/> : ''} 
+                        </Button>
                     </ButtonGroup>
                 </Form>
             </Modal.Body>
@@ -73,4 +92,4 @@ const mapStateToProps = ({foods}) => {
     }
 }
 
-export default connect(mapStateToProps, {foodsError, foodAdd})(AddFood);
+export default connect(mapStateToProps, {foodsError,  foodsRequested, foodsLoaded})(AddFood);

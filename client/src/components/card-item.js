@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import { foodUpdate, foodDel, foodsLoaded, foodsRequested, foodsError } from '../actions';
-import { updateFood, deleteFood, getAllFoods, } from '../services/foodsApiService';
-import { Card, Button, Form } from 'react-bootstrap';
+import { updateFood, deleteFood, getAllFoods } from '../services/foodsApiService';
+import { Card, Button, Form, Spinner } from 'react-bootstrap';
 
 
 const CardItem = (props) => {
 
+    const [validated, setValidated] = useState(false);
     const [edit, setEdit] = useState(false);
+    const [buttonUpdateDisabled, setButtonUpdateDisabled] = useState(false);
+    const [buttonDelDisabled, setButtonDelDisabled] = useState(false);
     const [data, setData] = useState({
         title: props.title,
         price: props.price,
@@ -19,6 +22,7 @@ const CardItem = (props) => {
     const {title, img, price, description, id} = data;
 
     const onChange = (e) => {
+        setValidated(false);
         setData({
             ...data,
             [e.target.name] : e.target.value
@@ -27,21 +31,48 @@ const CardItem = (props) => {
 
     const onUpdate = (e) => {
         e.preventDefault();
+        setButtonUpdateDisabled(true);
+        setValidated(false);
+
+        if (props.foods.find(item=>item.title.trim().toLowerCase() === data.title.trim().toLowerCase() && item.id !== data.id)) {
+            setValidated(true);
+            setButtonUpdateDisabled(false);
+            return
+        }
 
         updateFood(data)
         .then(res=>{
-            setEdit(false)
-            props.foodUpdate(res)
+            setEdit(false);
+            setButtonUpdateDisabled(false)
+            props.foodsRequested();
+
+            getAllFoods()
+            .then(res=>props.foodsLoaded(res))
+            .catch(er=>props.foodsError());
+
         })
-        .catch(er=>console.log(er))
+        .catch(er=>{
+            console.log(er);
+            setButtonUpdateDisabled(false)
+        })
     }
 
     const onDelete = (id) => {
+        setButtonDelDisabled(true);
+
         deleteFood(id)
-        .then(res=>{
-            props.foodDel(id)
+        .then(res=>{ 
+            props.foodsRequested();
+
+            getAllFoods()
+            .then(res=>props.foodsLoaded(res))
+            .catch(er=>props.foodsError());
+
         })
-        .catch(e=>console.log(e))
+        .catch(e=>{
+            console.log(e);
+            setButtonDelDisabled(false);
+        })
     }
 
 
@@ -59,14 +90,21 @@ const CardItem = (props) => {
     );
 
     const editCardBody = (
-        <Form onSubmit={onUpdate}>
+        <Form validated={validated} onSubmit={onUpdate}>
              <Form.Control onChange={onChange} name="img" type="text" value={img} />
-             <Form.Control onChange={onChange} name="title" type="text" value={title} />
-             <Form.Control onChange={onChange} name="price" type="text" value={price} />
+             {/* <Form.Group> */}
+                <Form.Control isInvalid={validated} onChange={onChange} name="title" type="text" value={title} />
+                <Form.Control.Feedback type="invalid">This title already exists</Form.Control.Feedback>
+             {/* </Form.Group> */}
+             <Form.Control onChange={onChange} name="price" type="number" value={price} />
              <Form.Control onChange={onChange} name="description" as="textarea" value={description} />
              <Form.Control name="id" type="hidden" value={id} />
-             <Button type="submit" className="w-100 mt-1" variant="secondary">Update</Button>
-             <Button onClick={()=>onDelete(id)} type="button" className="w-100 mt-1" variant="secondary">Delete</Button>
+             <Button disabled={buttonUpdateDisabled} type="submit" className="w-100 mt-1" variant="secondary">
+                 Update {buttonUpdateDisabled ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true"/> : ''}
+            </Button>
+             <Button onClick={()=>onDelete(id)} type="button" className="w-100 mt-1" variant="secondary">
+                 Delete {buttonDelDisabled ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true"/> : ''}
+            </Button>
         </Form>
     );
 
@@ -83,6 +121,11 @@ const CardItem = (props) => {
     )
 }
 
+const mapStateToProps = ({foods}) => {
+    return {
+        foods
+    }
+}
 
 
-export default connect(null, {foodUpdate, foodDel, foodsLoaded, foodsRequested, foodsError})(CardItem);
+export default connect(mapStateToProps, {foodUpdate, foodDel, foodsLoaded, foodsRequested, foodsError})(CardItem);

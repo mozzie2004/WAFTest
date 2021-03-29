@@ -1,5 +1,4 @@
 const getAllFoods = async () => {
-
     const result = await fetch('/api/foods');
 
     if (!result.ok) {
@@ -26,6 +25,10 @@ const updateFood = async (data) => {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(data)
     });
+
+    if (result.status !== 201) {
+        throw new Error('the card has not been updated')
+    }
 
     return await result.json();
 }
